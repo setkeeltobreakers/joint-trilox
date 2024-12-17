@@ -1,0 +1,34 @@
+function closureFunction(input)
+	 var x = atom(a) (a * input)
+end(x)
+
+var inputVariable = false
+
+var functionVariable
+
+var inputArray = [ true true unknown true true false ]
+
+if inputVariable do functionVariable = closureFunction(4), functionVariable = closureFunction(6), functionVariable = closureFunction(8)
+
+disp(inputVariable)
+
+var outray = []
+var i = 1
+while inputArray[i] do {
+      outray[i] = functionVariable(i)
+      i = i + 1
+      }, {
+      inputArray[i] = true
+      disp("Error at entry")
+      disp(i)
+      disp("Correcting")
+      continue
+      }
+
+disp(outray)
+
+var tableau = :[ stink : 5 ]
+
+disp(tableau)
+
+disp("This *should* be the end. And it is, woohoo!")

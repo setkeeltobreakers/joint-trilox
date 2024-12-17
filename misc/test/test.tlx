@@ -1,0 +1,27 @@
+var contents = []
+
+var index = 0
+
+var staatd = "main"
+
+
+while (staatd != "exit") do {
+      if staatd == "main" do {
+      	 var line = input("[/\]")
+	 if line == "insert" do {
+	    staatd = "insert"
+	 }
+	 if line == "exit" do staatd = "exit"
+      }
+      if staatd == "insert" do {
+      	 var line = input()
+	 while line != "exit" do {
+	       index = index + 1
+	       contents[index] = line
+	       line = input()
+	 }
+	 staatd = "main"
+      }
+}
+
+disp(contents)

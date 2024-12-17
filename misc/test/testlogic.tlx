@@ -1,0 +1,11 @@
+disp(true and false)
+
+disp(true xor false)
+
+disp(false xor false)
+
+disp(unknown or true)
+
+disp(unknown or false, unknown and true, true and true, unknown xor false)
+
+# ;_; I'm so happy

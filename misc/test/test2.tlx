@@ -1,0 +1,9 @@
+var x = "5"
+
+if x > 4 do
+   true:
+	disp("It's true, it's true!")
+   end
+   unknown:
+	disp("I don't know, do you?")
+   end

@@ -1,0 +1,11 @@
+function fibonacci(n)
+	 var fib = nil	 
+	 if n < 2 do fib = n, disp("Wrong input type! Needs to be a number!"), fib = fibonacci(n - 1) + fibonacci(n - 2)
+end(fib)
+
+var calc_start = clock()
+var x = fibonacci(35)
+var calc_end = clock()
+
+disp(x)
+disp(calc_end - calc_start)

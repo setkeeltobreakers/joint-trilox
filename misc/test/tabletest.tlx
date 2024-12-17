@@ -1,0 +1,5 @@
+var tableaux = :[ first : "First", second : "Second", third : "Third"]
+
+var accesser = "first"
+
+disp(tableaux:[accesser])
