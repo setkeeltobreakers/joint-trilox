@@ -10,7 +10,33 @@ This file serves to document the basics of the Trilox language, as implimented b
     - Strings :: Strings in Trilox are first class objects. They automatically interned, and declared using double quotes.
     - Tables :: Tables are collections of values that are accessed via strings. Internally, they are hash tables.
     - Arrays :: Arrays are collections of values accessed via numbers. They, and tables, dynamically grow to accomodate the values placed in them.
-    - Functions :: In Trilox, functions are first class values and can be placed and used exactly as any other value.
+    - Functions :: In Trilox, functions are first class values and can be used exactly as any other value.
+
+****** Syntax
+#+BEGIN_EXAMPLE
+# Numbers
+5
+5.0
+5.6
+# Logicals
+true
+unknown
+false
+# Nil
+nil
+# Strings
+"Hello world!"
+# Tables
+:[one : 1, two : 2, three : 3]
+table.entry
+table:["Calculated_entry"]
+# Array
+[ 1, 2, 3, 4, 5 ]
+array[4]
+# Functions
+function()
+funTwoArgs(1, 2)
+#+END_EXAMPLE
 
 *** Expressions and Statements
     Trilox features both expressions and statements as part of its grammer.
@@ -124,17 +150,55 @@ not false -> true
 #+END_EXAMPLE
 
 ***** If
-      Building on Trilox' ternary logic system, Trilox also provides three-way control flow via if statements. 
+      Building on Trilox' ternary logic system, Trilox also provides three-way control flow via if statements. There are two syntaxes that can be used to 
+      construct if statements, both define one expression that is evaluated for a logical result, and three seperate segments of code (in one syntax, each 
+      segment is a single statment, in the other, each is a block) one that is executed if the expression evaluated to true, one if it evaluated to unknown,
+      and one if it evaluated to false. 
+      The first syntax is more simple, but also more restrictive. The three statements are seperated by commas and have predefined locations. The true statement
+      is first, the unknown statement is second, and the false statement last. Both the unknown and false statements can be ommitted, either together or 
+      individually, but the true statement is mandatory. 
+      The second syntax is more complex, but is cleaner when one must place large blocks of code inside if statements. In this, each block is explicitly declared,
+      with the condition necessary to executed placed before a colon, and an 'end' keyword to mark the end of the block. The blocks can be placed in any order, 
+      and any of them can be ommitted, but having at least one is mandatory.
+
+****** Syntax
+#+BEGIN_EXAMPLE
+if true or false do 5 + 5, 6 + 6, 7 + 7 # Simple syntax
+
+if unknown and do # Blocking syntax
+true:
+    12 * 2
+end
+false:
+    5 + 6
+end
+unknown:
+    8 + 4
+end
+#+END_EXAMPLE
      
 ***** While
       Similarly to if statements, while statements are also altered from their usual form by taking advantage of Trilox' ternary logic system.
       While statements define a expression that is evaluated for every loop iteration and two statements, one to be executed if the expression evaluates to true
-      and the other to be executed if the expression evaluates to unknown. The true 
+      and the other to be executed if the expression evaluates to unknown. The true statement will be executed every time the loop iterates, but the unknown 
+      statement will be executed exactly once before exiting the loop, unless the program explicitly reenters the loop via a continue statement.
+      Only the true statement is mandatory, and the unknown statement can be ommitted. 
+
+****** Syntax
+#+BEGIN_EXAMPLE
+while true or unknown do 5 + 5, 6 + 6
+#+END_EXAMPLE
 
 ***** Each In
-      
+      Each in statments are, unlike out previous two examples, pretty much identical to what you would find in other languages with a 'for in' or 'each in' loop.
+      Each in statements define an array, a local variable representing an element in that array, and a statement which will be executed for every element in the
+      array. Each in loops also have a 'hidden' internal counter variable, named 'counter' that is exposed to the user and can be used if an explicit counter is 
+      necessary. 
 
-***** Continue
+****** Syntax
+#+BEGIN_EXAMPLE
+each i in [5 4 6 3] do i + counter
+#+END_EXAMPLE
 
 ***** Blocks
       Trilox supports C-like block syntax using curly braces.
@@ -151,4 +215,23 @@ if true do 5^3, 2/2, 25 - 3
 }
 #+END_EXAMPLE
 
+***** Continue
+      The continue statement can be used to skip to jump back to the top of a while loop, or in the case of an each in loop, jump to the next iteration.
+      If used inside the unknown statement in a while loop, it will return into the loop for another execution.
+
+****** Syntax
+#+BEGIN_EXAMPLE
+while true do {
+    5 + 5
+}, { 
+    disp("Something went wrong!") 
+    continue
+}
+#+END_EXAMPLE
+
 *** Declarations
+    Declarations extend the state of a program by defining new variables or functions.
+
+**** Variables
+**** Functions
+**** Tables
