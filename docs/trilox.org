@@ -1,0 +1,154 @@
+This file serves to document the basics of the Trilox language, as implimented by the Joint interpreter
+
+* Core Features
+** Basics
+*** Values
+    Trilox is a dynamically typed language with seven basics types of value:
+    - Numbers :: Numbers in Trilox are all part of the same type, which is internally a double precision floating point value.
+    - Logical :: Uniquely, in Trilox, logical values come in three flavors. True, false, and unknown.
+    - Nil :: Trilox contains an explicit representation for a null value.
+    - Strings :: Strings in Trilox are first class objects. They automatically interned, and declared using double quotes.
+    - Tables :: Tables are collections of values that are accessed via strings. Internally, they are hash tables.
+    - Arrays :: Arrays are collections of values accessed via numbers. They, and tables, dynamically grow to accomodate the values placed in them.
+    - Functions :: In Trilox, functions are first class values and can be placed and used exactly as any other value.
+
+*** Expressions and Statements
+    Trilox features both expressions and statements as part of its grammer.
+    
+**** Expressions
+     Expressions in trilox come in a variety of flavors.
+
+***** Arithmetic
+      Arithmetic operators in Trilox are parsed using infix notation and are right associative.
+      There are six arithmetic operators in Trilox. They are as follows:
+      - + :: Addition.
+      - - :: Subtraction. Can also be used as an prefix operator to negate values.
+      - * :: Multiplication.
+      - / :: Division. There are no checks for division by 0.
+      - % :: Modulo.
+      - ^ :: Exponentiation. 
+
+****** Syntax:
+#+BEGIN_EXAMPLE
+5 + 4 - 3 * 5 / 3 % 20 ^ 2 -> 4
+#+END_EXAMPLE
+
+***** Comparisons
+      Trilox features the usual list of binary comparison operators that you may expect from other programming languages, along with a ternary 
+      comparison operator. For the binary comparison operators, they return true or false when applied normally, but when they are supplied with
+      values of different types, for example a string versus a number, they will return unknown. The ternary comparison operator returns false
+      if the value before it is "less than" (either in value in the case of numbers, or in the case of strings, arrays, and tables, size) the value
+      after it, true if the value before it is "greater than" the value after it, or unknown if they are "equal."
+
+      Comparison operators:
+      - compare :: Ternary comparison operator.
+      - == :: Equality.
+      - < :: Less than.
+      - <= :: Less than or equal to.
+      - > :: Greater than.
+      - >= :: Greater than or equal to.
+      - != :: Not equal to.
+
+****** Syntax
+#+BEGIN_EXAMPLE
+5 < 6 -> true
+5 < "6" -> unknown
+5 != "6" -> unknown
+
+5 compare 6 -> false
+7 compare 6 -> true
+6 compare 6 -> unknown
+#+END_EXAMPLE
+Note: When presented with a logical value, 'compare' evaluates according to the following precedence: false < unknown < true.
+      e.g. false compare true -> false, unknown compare false -> true, true compare true -> unknown.
+
+***** Logical operators
+      Similarly to how languages with binary logic have Boolean operators, Trilox pairs its ternary logic with Kleene/Priest operators. These KP
+      operators are identical to Boolean operators when supplied with only true and false, but when supplied with an unknown value, they behave
+      differently. KP operators in Trilox do not short circuit, both input values are calculated independantly and then compared.
+
+      Logical operators:
+      - not, ! :: Not
+	- Truth Table:
+	  | Input   | Output  |
+	  | True    | False   |
+	  | Unknown | Unknown |
+	  | False   | True    |
+      - and :: And
+	- Truth Table:
+	  | Inputs  | True    | Unknown | False |
+	  |---------+---------+---------+-------|
+	  | True    | True    | Unknown | False |
+	  | Unknown | Unknown | Unknown | False |
+	  | False   | False   | False   | False |
+      - or :: Or
+	- Truth Table:
+	  | Inputs  | True | Unknown | False   |
+	  |---------+------+---------+---------|
+	  | True    | True | True    | True    |
+	  | Unknown | True | Unknown | Unknown |
+	  | False   | True | Unknown | False   |
+      - xor :: Xor
+	- Truth Table:
+	  | Inputs  | True    | Unknown | False   |
+	  |---------+---------+---------+---------|
+	  | True    | False   | Unknown | True    |
+	  | Unknown | Unknown | Unknown | Unknown |
+	  | False   | True    | Unknoen | False   |
+
+****** Syntax
+#+BEGIN_EXAMPLE
+true or false -> true,
+true xor unknown -> unknown,
+true and true -> true,
+not false -> true
+#+END_EXAMPLE
+
+**** Statements
+     Likewise, Trilox comes with a handful of different statements. Mostly surrounding control flow.
+
+***** Statement boundaries
+     In Trilox, statement boundaries are determined principally by newline characters. Some characters or keywords can also act as statment boundaries,
+     this includes commas, curly braces, parenthesis, and the end keyword. However, these characters are not consumed by the compiler if they simply 
+     mark the end of a statement, but only if they are part of a larger statement/declaration. Essentially, the programmer is not forced to insert
+     new lines in situations where there are natural boundaries around statements.
+     If the programmer wished to provide explicit statement boundaries without introducing a new line, they can use a semicolon. 
+
+****** Syntax
+#+BEGIN_EXAMPLE
+5 + 4
+
+{ 5 + 4 }
+
+5 + 4; 4 + 5
+#+END_EXAMPLE
+
+***** If
+      Building on Trilox' ternary logic system, Trilox also provides three-way control flow via if statements. 
+     
+***** While
+      Similarly to if statements, while statements are also altered from their usual form by taking advantage of Trilox' ternary logic system.
+      While statements define a expression that is evaluated for every loop iteration and two statements, one to be executed if the expression evaluates to true
+      and the other to be executed if the expression evaluates to unknown. The true 
+
+***** Each In
+      
+
+***** Continue
+
+***** Blocks
+      Trilox supports C-like block syntax using curly braces.
+      
+      Blocks:
+      - { ... } :: Block
+
+****** Syntax:
+#+BEGIN_EXAMPLE
+if true do {
+5 + 5 - 3
+true or false
+if true do 5^3, 2/2, 25 - 3
+}
+#+END_EXAMPLE
+
+*** Declarations

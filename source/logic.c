@@ -9,7 +9,7 @@ TriloxLogic valuesEqual(Value a, Value b) {
   if (a.type != b.type) return TRILOX_UNKNOWN; /* Different types are incomparable */
 
   switch (a.type) {
-  case VAL_NIL: return TRILOX_UNKNOWN; /* Nil is unknown in all comparisons, including with itself */
+  case VAL_NIL: return TRILOX_UNKNOWN; /* Nil is unknown in all comparisons, including with itself. Does this make sense? Maybe, I'm not sure. */
   case VAL_LOGIC: return (LOGIC_TO_TRILOX(AS_LOGIC(a) == AS_LOGIC(b)));
   case VAL_NUMBER: return LOGIC_TO_TRILOX(AS_NUMBER(a) == AS_NUMBER(b));
   case VAL_OBJECT: {
@@ -40,11 +40,9 @@ TriloxLogic ternaryCompare(Value a, Value b) {
     switch (OBJ_TYPE(a)) {
     case OBJ_STRING: return AS_STRING(a)->length > AS_STRING(b)->length ? TRILOX_TRUE : (AS_STRING(a)->length < AS_STRING(b)->length ? TRILOX_FALSE : TRILOX_UNKNOWN);
     case OBJ_ARRAY: return AS_ARRAY(a)->values.count > AS_ARRAY(b)->values.count ? TRILOX_TRUE : (AS_ARRAY(a)->values.count < AS_ARRAY(b)->values.count ? TRILOX_FALSE : TRILOX_UNKNOWN);
+    case OBJ_TABLE: return AS_TABLE(a)->table.count > AS_TABLE(b)->table.count ? TRILOX_TRUE : (AS_TABLE(a)->table.count < AS_TABLE(b)->table.count ? TRILOX_FALSE : TRILOX_UNKNOWN);
     default: return TRILOX_UNKNOWN;
     }
-    
-    if (OBJ_TYPE(a) != OBJ_STRING || OBJ_TYPE(a) != OBJ_TYPE(b)) return TRILOX_UNKNOWN;
-    return AS_STRING(a)->length - AS_STRING(b)->length > 0 ? TRILOX_TRUE : (AS_STRING(a)->length - AS_STRING(b)->length < 0 ? TRILOX_FALSE : TRILOX_UNKNOWN);
   }
   }
 }
