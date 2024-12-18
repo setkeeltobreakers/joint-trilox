@@ -189,10 +189,10 @@ end
 while true or unknown do 5 + 5, 6 + 6
 #+END_EXAMPLE
 
-***** Each In
-      Each in statments are, unlike out previous two examples, pretty much identical to what you would find in other languages with a 'for in' or 'each in' loop.
-      Each in statements define an array, a local variable representing an element in that array, and a statement which will be executed for every element in the
-      array. Each in loops also have a 'hidden' internal counter variable, named 'counter' that is exposed to the user and can be used if an explicit counter is 
+***** Each-In
+      Each-in statments are, unlike out previous two examples, pretty much identical to what you would find in other languages with a 'for in' or 'each in' loop.
+      Each-in statements define an array, a local variable representing an element in that array, and a statement which will be executed for every element in the
+      array. Each-in loops also have a 'hidden' internal counter variable, named 'counter' that is exposed to the user and can be used if an explicit counter is 
       necessary. 
 
 ****** Syntax
@@ -229,9 +229,67 @@ while true do {
 }
 #+END_EXAMPLE
 
-*** Declarations
+***** Consider-When and Switch-Case
+      In many languages there are comparison statments in which multiple conditions are compared and multiple blocks are executed based on those
+      conditions. Internally, these are implimented either as a linear search in which each condition is individually compared in sequence until a
+      match is found, then the correspoding block is executed and the statement exited, or as some kind of search on a jump table in which a specific
+      condition is found and then the corresponding block is executed and the statement exited.
+      Each of these has their pros and cons. The former allows for more complex conditions to be evaluated, but for simple comparisons the latter is 
+      much faster, and its speed generally does not depend on which specific condition is true.
+      In Trilox, both are implimented using two different statements. The former is implimented using the consider-when statement, and the latter using
+      the switch-case statement. For the switch-case statement, all of the cases must be constant values, they cannot be expressions or variables or 
+      function calls. This is because the jump table for each case is calculated at compile time, and so those dynamic values have not been calculated
+      yet. For consider-when statements, any expression or constant value is a valid when comparison.
+
+****** Syntax
+#+BEGIN_EXAMPLE
+consider
+    when 5 == 5 do 5 + 5
+    when 4 == 5 do 4 + 5
+
+switch "switcher" do
+    case "switcher" do 34 / 2
+    case "not-switcher" do 43 - 5
+#+END_EXAMPLE
+
+*** TODO Declarations
     Declarations extend the state of a program by defining new variables or functions.
 
-**** Variables
-**** Functions
-**** Tables
+**** DONE Variables
+     As previously mentioned, variables in Trilox are dynamically typed. Variables are also lexically scoped, and global variables are late-bound.
+     All of this means that any value can be slotted into any variable, variable scoping functions as normal in most languages, and global variables 
+     can be referenced (but not accessed) before they are defined. Trilox does not support implicit definition, variables must be explicitly declared
+     before they can be used. Variables are implicitly set to nil if no value is set during declaration.
+
+****** Syntax
+#+BEGIN_EXAMPLE
+var variable = 5
+
+var nilvariable
+#+END_EXAMPLE
+
+**** TODO Functions
+     Functions come in a couple of different forms in Trilox.
+
+***** Named Functions
+      The primary form of function you'll find in Trilox is the named function. Named functions 
+
+****** Syntax
+#+BEGIN_EXAMPLE
+function exampleFun(arg1, arg2, arg3)
+    var outvar
+    outvar = arg1 + arg2 - arg3
+end(outvar)
+#+END_EXAMPLE
+
+***** Anonymous Functions
+****** Syntax
+#+BEGIN_EXAMPLE
+var anonFunc = atom(a, b) (a + b)
+#+END_EXAMPLE
+
+**** TODO Tables
+     Similarly to functions, tables come in both named and anonymous forms.
+
+***** Named Tables
+***** Anonymous Tables
