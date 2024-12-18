@@ -293,3 +293,8 @@ var anonFunc = atom(a, b) (a + b)
 
 ***** Named Tables
 ***** Anonymous Tables
+*** TODO Libraries
+    Filler
+**** TODO Native Libraries
+**** TODO Importing Scripts
+**** TODO Core Library
