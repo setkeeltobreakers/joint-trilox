@@ -1,0 +1,24 @@
+var variable = "Global"
+
+var i = 0
+while i < 10 do {
+      i = i + 1
+      if 5 compare i do
+      true:
+	{disp(variable)
+	var variable = "local"
+	var variable2 = "another local"
+	disp(variable)}
+      end
+      unknown:
+	{var variable = "waha"
+	var variable2 = "wehe"
+	var variable3 = "wahaha"
+	continue}
+      end
+      false:
+	{var variable = "pleh"
+	disp(variable, i)
+	disp(variable, i)}
+      end
+}

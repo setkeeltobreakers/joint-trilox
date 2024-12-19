@@ -1,0 +1,99 @@
+function fun1(a, b)
+	 5 + 5
+	 6 + 6
+	 7 + 7
+	end(a + b)
+
+function fun2(a, b)
+	 5 * 5
+	 6 * 7
+	 8 * 4
+	end(a * b)
+
+function fun3(a, b)
+	 5 / 3
+	 5 / 6
+	 1 / 4
+	end(a / b)
+
+function fun4(a, b)
+	 30 - 14
+	 34 - 21
+	 56 - 21
+	end(a - b)
+
+function fun5(a, b)
+	 10 % 3
+	 40 % 7
+	 11 % 4
+	end(a % b)
+
+function fun6(a, b)
+	 2 ^ 3
+	 4 ^ 6
+	 2 ^ 2
+	end(a ^ b)
+
+var table = :[ sneed : fun1, feed : fun2, geed : fun3, seed : fun4, leed : fun5, deed : fun6 ]
+
+var array = ["sneed", "feed", "seed", "geed", "leed", "deed"]
+
+var endTime
+var start
+
+var i = 0
+start = clock()
+while i < 20000 do {
+      
+      table:[array[(i % 6) + 1]](5, 3)
+      i = i + 1
+}
+endTime = clock()
+
+disp("Table time:", endTime - start)
+
+i = 0
+start = clock()
+while i < 20000 do {
+      switch array[i % 6 + 1] do
+      	     case "sneed" do {
+	     	  5 + 5
+	 	  6 + 6	  
+	 	  7 + 7
+		  5 + 3
+             }
+ 	     case "feed" do {
+	     	   5 * 5
+	 	   6 * 7
+	 	   8 * 4
+		   5 * 3
+	     }
+	     case "geed" do {
+	     	  5 / 3
+	 	  5 / 6
+	 	  1 / 4
+    		  5 / 3
+	     }
+	     case "seed" do {
+	     	  30 - 14
+	 	  34 - 21
+	 	  56 - 21
+    		  5 - 3
+	     }
+	     case "leed" do {
+	     	  10 % 3
+	 	  40 % 7
+	 	  11 % 4
+		  5 % 3
+	     }
+	     case "deed" do {
+	     	  2 ^ 3
+	 	  4 ^ 6
+	 	  2 ^ 2
+		  5 ^ 3
+	     }
+
+       i = i + 1
+}
+endTime = clock()
+disp("Switch time", endTime - start)
