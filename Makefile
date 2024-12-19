@@ -1,4 +1,4 @@
-CFLAGS=-g
+CFLAGS=-O2
 
 all: libraries
 	make clean

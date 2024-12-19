@@ -73,6 +73,7 @@ struct Compiler {
   int scopeDepth;
   int loopLevel;
   int loopStarts[MAX_LOOP_NESTING];
+  int loopDepths[MAX_LOOP_NESTING];
 };
 
 static void unary(int canAssign);
@@ -552,6 +553,7 @@ static void function(FunctionType type) {
   }
 
   consume(TOKEN_RIGHT_PAREN, "Expect ) after function input paremeters.");
+
   body();
   
   if (match(TOKEN_LEFT_PAREN)) {
@@ -734,6 +736,7 @@ static void whileStatement() {
   if (current->loopLevel > MAX_LOOP_NESTING) errorAtCurrent("Too many nested loops. What are you, a bird?");
   int loopStart = currentChunk()->count;
   current->loopStarts[current->loopLevel - 1] = loopStart;
+  current->loopDepths[current->loopLevel - 1] = current->scopeDepth;
   expression();
   consume(TOKEN_DO, "Expect 'do' after condition");
 
@@ -741,13 +744,13 @@ static void whileStatement() {
   int unknownJump = emitJump(OP_JUMP_IF_UNKNOWN);
   emitByte(OP_POP);
 
-  declaration();
+  statement();
   
   emitLoop(loopStart);
 
   patchJump(unknownJump);
   if (match(TOKEN_COMMA)) {
-    declaration();
+    statement();
   }
   
   patchJump(exitJump);
@@ -791,6 +794,7 @@ static void eachStatement() {
   
   int loopStart = currentChunk()->count; /* Mark the loop start */
   current->loopStarts[current->loopLevel - 1] = loopStart;
+  current->loopDepths[current->loopLevel - 1] = current->scopeDepth;
   
   emitByte(OP_GET_ARRAY_COUNT);
   emitBytePair(OP_GET_LOCAL, loopCounter);
@@ -805,7 +809,7 @@ static void eachStatement() {
   emitBytePair(OP_SET_LOCAL, loopVar); /* Get the value from the array and put it in the loop variable. */
   emitByte(OP_POP);
 
-  declaration();
+  statement();
 
   emitByte(OP_PUSH_1);
   emitBytePair(OP_GET_LOCAL, loopCounter);
@@ -843,12 +847,22 @@ static void continueStatement() { /* TODO: Change things so locals inside a scop
     emitBytePair(OP_SET_LOCAL, counterCheck);
     emitByte(OP_POP);
   }
-
+  
   int jump = currentChunk()->count - current->loopStarts[current->loopLevel - 1] + 3;
   if (jump > UINT16_MAX) {
     errorAtCurrent("Oversized loop comin' through!");
   }
-  
+
+  int count = current->localCount;
+  while (count > 0 && current->locals[count - 1].depth > current->loopDepths[current->loopLevel - 1]) {
+    if (current->locals[count - 1].isCaptured) {
+      emitByte(OP_CLOSE_UPVALUE);
+    } else {
+      emitByte(OP_POP);
+    }
+    jump++;
+    count--;
+  }
   
   emitByte(OP_LOOP);
   emitByte((jump >> 8) & 0xff);

@@ -19,14 +19,14 @@ void error(int line, char *message) {
 }
 
 int runMain(char *source, char *filename) {
-  printf("===Script===\n");
+  /*  printf("===Script===\n");
   printf("%s", source);
-
+  */
   VM vim;
   initVM(&vim);
-
+  /*
   printf("===Output===\n");
-  
+  */
   InterpretResult result = interpret(source, filename, &vim);
 
   if (result == INTERPRET_RUNTIME_ERROR) {
@@ -43,7 +43,7 @@ int runPrompt() {
     printf("%s ", REPL_PROMPT);
     char *line = NULL;
     ssize_t linesize;
-    getline(&line, &linesize, stdin); /* This is a GNU extension. Musl users beware! */
+    getline(&line, &linesize, stdin);
     if (!strcmp(line, "exit\n")) {
       printf("Bye bye!\n");
       free(line);
@@ -52,7 +52,7 @@ int runPrompt() {
     printf("%s", line);
     interpret(line, "REPL", &vim);
     hadError = 0;
-    free(line); /* Necessary bc of GNU not being Unix */
+    free(line); 
   }
   freeVM(&vim);
 }

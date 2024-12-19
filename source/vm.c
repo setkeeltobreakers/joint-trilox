@@ -211,12 +211,16 @@ static void concatenate(VM *vm, VMStack *vmstack) {
 
 static InterpretResult run(VM *vm) {
   CallFrame *frame = &vm->call_stack->frames[vm->call_stack->frameCount - 1];  
-
   VMStack *vmstack = getStack(vm);
-#define READ_BYTE() (*frame->ip++)
-#define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
-#define READ_SHORT() (frame->ip += 2, (uint16_t) ((frame->ip[-2] << 8) | frame->ip[-1]))
-#define READ_LONG_CONSTANT() (frame->closure->function->chunk.constants.values[READ_SHORT()])
+  uint8_t *ip = frame->ip;
+  uint8_t *codestart = frame->closure->function->chunk.code;
+  int codelength = frame->closure->function->chunk.count;
+  Value *constants = frame->closure->function->chunk.constants.values;
+  
+#define READ_BYTE() (*ip++)
+#define READ_CONSTANT() (constants[READ_BYTE()])
+#define READ_SHORT() (ip += 2, (uint16_t) ((ip[-2] << 8) | ip[-1]))
+#define READ_LONG_CONSTANT() (constants[READ_SHORT()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 #define READ_LONG_STRING() AS_STRING(READ_LONG_CONSTANT())
 #define BINARY_OP(op, stack) do {				     \
@@ -244,10 +248,10 @@ static InterpretResult run(VM *vm) {
   } while (0)
     
   while (1) {
-    if (frame->ip - frame->closure->function->chunk.code > frame->closure->function->chunk.count) {
+    if (ip - codestart > codelength) {
       runtimeError("VM instruction pointer escaped the frame chunk! 99% chance this is an implimentation error, bug report time!", vm);
        return INTERPRET_RUNTIME_ERROR;
-    }
+       }
     uint8_t instruction = READ_BYTE();
     switch (instruction) {
     case OP_NIL: push(vmstack, NIL_VAL); break;
@@ -488,23 +492,23 @@ static InterpretResult run(VM *vm) {
     } break;
     case OP_JUMP: {
       uint16_t offset = READ_SHORT();
-      frame->ip += offset;
+      ip += offset;
     } break;
     case OP_JUMP_IF_FALSE: {
       uint16_t offset = READ_SHORT();
-      if (valueNot(peek(0, vmstack)) == TRILOX_TRUE) frame->ip += offset; // Checks for negation bc reasons.
+      if (valueNot(peek(0, vmstack)) == TRILOX_TRUE) ip += offset; // Checks for negation bc reasons.
     } break;
     case OP_JUMP_IF_UNKNOWN: {
       uint16_t offset = READ_SHORT();
-      if (valueNot(peek(0, vmstack)) == TRILOX_UNKNOWN) frame->ip += offset; // One of the reasons is that it won't mess up when you get a non logical value. 
+      if (valueNot(peek(0, vmstack)) == TRILOX_UNKNOWN) ip += offset; // One of the reasons is that it won't mess up when you get a non logical value. 
     } break;
     case OP_JUMP_IF_TRUE: {
       uint16_t offset = READ_SHORT();
-      if (valueNot(peek(0, vmstack)) == TRILOX_FALSE) frame->ip += offset;
+      if (valueNot(peek(0, vmstack)) == TRILOX_FALSE) ip += offset;
     } break;
     case OP_JUMP_IF_NOT_TRUE: {
       uint16_t offset = READ_SHORT();
-      if (valueNot(peek(0, vmstack)) != TRILOX_FALSE) frame->ip += offset;
+      if (valueNot(peek(0, vmstack)) != TRILOX_FALSE) ip += offset;
     } break;
     case OP_JUMP_TABLE_JUMP: {
       uint8_t jumpTableNum = READ_BYTE();
@@ -517,18 +521,23 @@ static InterpretResult run(VM *vm) {
       if (!isCase) {
 	tableGet(jumpTable, copyString("___internal_switch_default", 26, vm), &offsetVal);
       }
-      frame->ip += (int) AS_NUMBER(offsetVal);
+      ip += (int) AS_NUMBER(offsetVal);
     } break;
     case OP_LOOP: {
       uint16_t offset = READ_SHORT();
-      frame->ip -= offset;
+      ip -= offset;
     } break;
     case OP_CALL: {
       int argCount = READ_BYTE();
       if (!callValue(peek(argCount, vmstack), argCount, vm, vmstack)) {
 	return INTERPRET_RUNTIME_ERROR;
       }
+      frame->ip = ip;
       frame = &vm->call_stack->frames[vm->call_stack->frameCount - 1];
+      ip = frame->ip;
+      codestart = frame->closure->function->chunk.code;
+      codelength = frame->closure->function->chunk.count;
+      constants = frame->closure->function->chunk.constants.values;
     } break;
     case OP_CLOSURE: {
       ObjFunction *function = AS_FUNCTION(READ_CONSTANT());
@@ -572,6 +581,10 @@ static InterpretResult run(VM *vm) {
       vm->main_stack->top = frame->slots;
       push(vmstack, result);
       frame = &vm->call_stack->frames[vm->call_stack->frameCount - 1];
+      ip = frame->ip;
+      codestart = frame->closure->function->chunk.code;
+      codelength = frame->closure->function->chunk.count;
+      constants = frame->closure->function->chunk.constants.values;
     } break;
     default: return INTERPRET_RUNTIME_ERROR;
     }
