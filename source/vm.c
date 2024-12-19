@@ -502,6 +502,23 @@ static InterpretResult run(VM *vm) {
       uint16_t offset = READ_SHORT();
       if (valueNot(peek(0, vmstack)) == TRILOX_FALSE) frame->ip += offset;
     } break;
+    case OP_JUMP_IF_NOT_TRUE: {
+      uint16_t offset = READ_SHORT();
+      if (valueNot(peek(0, vmstack)) != TRILOX_FALSE) frame->ip += offset;
+    } break;
+    case OP_JUMP_TABLE_JUMP: {
+      uint8_t jumpTableNum = READ_BYTE();
+      Table *jumpTable = getJumpTable(&frame->closure->function->chunk, jumpTableNum);
+      Value offsetVal;
+      int isCase = 0;
+      if (IS_STRING(peek(0, vmstack))) {
+      isCase = tableGet(jumpTable, AS_STRING(peek(0, vmstack)), &offsetVal);
+      }
+      if (!isCase) {
+	tableGet(jumpTable, copyString("___internal_switch_default", 26, vm), &offsetVal);
+      }
+      frame->ip += (int) AS_NUMBER(offsetVal);
+    } break;
     case OP_LOOP: {
       uint16_t offset = READ_SHORT();
       frame->ip -= offset;

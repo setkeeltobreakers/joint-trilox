@@ -240,6 +240,13 @@ while true do {
       the switch-case statement. For the switch-case statement, all of the cases must be constant values, they cannot be expressions or variables or 
       function calls. This is because the jump table for each case is calculated at compile time, and so those dynamic values have not been calculated
       yet. For consider-when statements, any expression or constant value is a valid when comparison.
+      
+      Switch statements support a 'default' statement which is executed if the input matches none of the case entries. Consider statement also support
+      an 'else' statement which is executed if none of the when conditions evaluate to true.
+      
+      For consider statements, each when statement will execute if and only if the corresponding condition evaluates to true. For switch statements, 
+      if a non-string value is used as the input, the statement will execute the default statement if there is one, or simple pass through the statement
+      if there isn't.
 
 ****** Syntax
 #+BEGIN_EXAMPLE
@@ -250,6 +257,7 @@ consider
 switch "switcher" do
     case "switcher" do 34 / 2
     case "not-switcher" do 43 - 5
+    default do 3 * 5
 #+END_EXAMPLE
 
 *** TODO Declarations

@@ -276,10 +276,10 @@ static void emitLoop(int loopStart) {
 
 static uint16_t makeConstant(Value value) {
   int constant = addConstant(currentChunk(), value, vm);
-  /* if (constant > UINT8_MAX) {
+  if (constant > UINT16_MAX) {
     errorAtCurrent("Too many constants");
     return 0;
-    } */
+    }
   
   return (uint16_t) constant;
 }
@@ -855,6 +855,80 @@ static void continueStatement() { /* TODO: Change things so locals inside a scop
   emitByte(jump & 0xff);
 }
 
+static void considerStatement() {
+  int whenEndingJumps[256];
+  int jumps = 0;
+  
+  while (match(TOKEN_WHEN)) {
+    expression();
+    consume(TOKEN_DO, "Expect 'do' after when conditional.");
+    int falseJump = emitJump(OP_JUMP_IF_NOT_TRUE);
+    emitByte(OP_POP);
+    statement();
+    whenEndingJumps[jumps] = emitJump(OP_JUMP);
+    patchJump(falseJump);
+    emitByte(OP_POP);
+    jumps++;
+  }
+
+  if (match(TOKEN_ELSE)) {
+    consume(TOKEN_DO, "Expect 'do' after else in consider-when statement.");
+    statement();
+  }
+  
+  for (int i = 0; i < jumps; i++) {
+    patchJump(whenEndingJumps[i]);
+  }
+}
+
+static void switchStatement() {
+  expression();
+  consume(TOKEN_DO, "Expect 'do' after switch input.");
+  int caseEndingJumps[256];
+  int jumps = 0;
+
+  int jumpTableNum = addJumpTable(currentChunk(), vm);
+  
+  if (jumpTableNum > UINT8_MAX) {
+    errorAtCurrent("Too many switch statements in function/script.");
+  }
+  
+  Table *jumpTable = getJumpTable(currentChunk(), jumpTableNum);
+  
+  emitBytePair(OP_JUMP_TABLE_JUMP, (uint8_t) jumpTableNum);
+
+  int switchStart = currentChunk()->count;
+  
+  while (match(TOKEN_CASE)) {
+    consume(TOKEN_STRING, "Expect string for case conditional.");
+    uint16_t stringNum = makeConstant(OBJECT_VAL(copyString(parser.previous.start + 1, parser.previous.length - 2, vm)));
+    int newConditional = tableSet(jumpTable, AS_STRING(currentChunk()->constants.values[stringNum]), NUMBER_VAL(currentChunk()->count - switchStart), vm);
+    if (!newConditional) errorAtCurrent("Duplicate case conditional inside switch statement.");
+    consume(TOKEN_DO, "Expect 'do' after case conditional.");
+    emitByte(OP_POP);
+    statement();
+    caseEndingJumps[jumps] = emitJump(OP_JUMP);
+    jumps++;
+  }
+  if (jumps == 0) errorAtCurrent("No 'case'-es inside switch statement!");
+
+  if (match(TOKEN_DEFAULT)) {
+    consume(TOKEN_DO, "Expect 'do' after default case.");
+    uint16_t stringNum = makeConstant(OBJECT_VAL(copyString("___internal_switch_default", 26 , vm)));
+    tableSet(jumpTable, AS_STRING(currentChunk()->constants.values[stringNum]), NUMBER_VAL(currentChunk()->count - switchStart), vm);
+    emitByte(OP_POP);
+    statement();
+  } else {
+    uint16_t stringNum = makeConstant(OBJECT_VAL(copyString("___internal_switch_default", 26 , vm)));
+    tableSet(jumpTable, AS_STRING(currentChunk()->constants.values[stringNum]), NUMBER_VAL(currentChunk()->count - switchStart), vm);
+    emitByte(OP_POP);
+  }
+  
+  for (int i = 0; i < jumps; i++) {
+    patchJump(caseEndingJumps[i]);
+  }
+}
+
 static void statement() {
   if (match(TOKEN_LEFT_BRACE)) {
     beginScope();
@@ -868,6 +942,10 @@ static void statement() {
     eachStatement();
   } else if (match(TOKEN_CONTINUE)){
     continueStatement();
+  } else if (match(TOKEN_CONSIDER)) {
+    considerStatement();
+  } else if (match(TOKEN_SWITCH)) {
+    switchStatement();
   } else {
     expressionStatement();
   }

@@ -17,7 +17,7 @@ typedef struct {
   int capacity;
   Entry *entries;
 } Table;
-
+  
 void initTable(Table *table);
 void freeTable(Table *table, VM *vm);
 int tableSet(Table *table, ObjString *key, Value value, VM *vm);

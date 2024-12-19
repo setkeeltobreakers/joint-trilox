@@ -5,7 +5,9 @@ typedef struct VM VM;
 
 #include <stddef.h>
 #include <stdint.h>
+
 #include "value.h"
+#include "table.h"
 
 typedef enum {
   OP_NIL,
@@ -58,6 +60,8 @@ typedef enum {
   OP_JUMP_IF_FALSE,
   OP_JUMP_IF_UNKNOWN,
   OP_JUMP_IF_TRUE,
+  OP_JUMP_IF_NOT_TRUE,
+  OP_JUMP_TABLE_JUMP,
   OP_LOOP,
   OP_CALL,
   OP_CLOSURE,
@@ -68,15 +72,25 @@ typedef enum {
 typedef struct {
   int count;
   int capacity;
+  Table *tables;
+} TableArray;
+
+typedef struct {
+  int count;
+  int capacity;
   uint8_t* code;
   ValueArray constants;
   int *lines;
+  TableArray jumpTables;
 } Chunk;
 
 void initChunk(Chunk *chunk);
 void writeChunk(Chunk *chunk, uint8_t byte, int line, VM *vm);
 void freeChunk(Chunk *chunk, VM *vm);
 void disassembleChunk(Chunk *chunk, char *name);
+
+int addJumpTable(Chunk *chunk, VM *vm);
+Table *getJumpTable(Chunk *chunk, uint8_t number);
 
 int addConstant(Chunk *chunk, Value value, VM *vm);
 

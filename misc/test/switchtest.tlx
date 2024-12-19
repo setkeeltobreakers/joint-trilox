@@ -1,0 +1,34 @@
+var condition = "one"
+
+var endTime
+var startTime = clock()
+{
+var i = 0
+while i < 5 do {
+i = i + 1
+consider
+	when condition == "one" do 5 + 5
+	when condition == "two" do 5 + 5
+	when condition == "three" do 5 + 5
+	else do disp("It's the thinga")
+}
+}
+endTime = clock()
+
+disp("Consider Time", endTime - startTime)
+
+startTime = clock()
+{
+var i = 0
+while i < 5 do {
+i = i + 1
+switch condition do
+       case "one" do 5 + 5
+       case "two" do 5 + 5
+       case "three" do 5 + 5
+       default do disp("Wakka wakka")
+}
+}
+endTime = clock()
+
+disp("Switch time", endTime - startTime)

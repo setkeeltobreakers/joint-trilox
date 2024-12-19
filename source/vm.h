@@ -35,8 +35,8 @@ struct VM {
   Object *objects; /* Points to the head of the object linked list */
   Table strings;
   Table globals;
-
-   int grayCount;
+  
+  int grayCount;
   int grayCapacity;
   Object **grayStack;
 };

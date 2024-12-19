@@ -66,6 +66,10 @@ void initChunk(Chunk *chunk) {
   chunk->code = NULL;
   chunk->lines = NULL;
   initValueArray(&chunk->constants);
+
+  chunk->jumpTables.count = 0;
+  chunk->jumpTables.capacity = 0;
+  chunk->jumpTables.tables = NULL;
 }
 
 void writeChunk(Chunk *chunk, uint8_t byte, int line, VM *vm) {  
@@ -85,6 +89,10 @@ void freeChunk(Chunk *chunk, VM *vm) {
   FREE_ARRAY(uint8_t, chunk->code, chunk->capacity, vm);
   FREE_ARRAY(int, chunk->lines, chunk->capacity, vm);
   freeValueArray(&chunk->constants, vm);
+  for (int i = 0; i < chunk->jumpTables.count; i++) {
+    freeTable(&chunk->jumpTables.tables[i], vm);
+  }
+  FREE_ARRAY(Table, chunk->jumpTables.tables, chunk->jumpTables.capacity, vm);
   initChunk(chunk); 
 }
 
@@ -93,6 +101,27 @@ int addConstant(Chunk *chunk, Value value, VM *vm) {
   writeValueArray(&chunk->constants, value, vm);
   pop(getStack(vm));
   return chunk->constants.count - 1;  
+}
+
+int addJumpTable(Chunk *chunk, VM *vm) {
+  if (chunk->jumpTables.capacity < chunk->jumpTables.count + 1) {
+    int oldCapacity = chunk->jumpTables.capacity;
+    chunk->jumpTables.capacity = GROW_CAPACITY(oldCapacity);
+    chunk->jumpTables.tables = GROW_ARRAY(Table, chunk->jumpTables.tables, oldCapacity, chunk->jumpTables.capacity, vm);
+  }
+  
+  initTable(&chunk->jumpTables.tables[chunk->jumpTables.count]);
+  chunk->jumpTables.count++;
+  return chunk->jumpTables.count - 1;
+}
+
+Table *getJumpTable(Chunk *chunk, uint8_t number) {
+  if (chunk->jumpTables.count <= number) {
+    fprintf(stderr, "Out of bounds read of jump table array.");
+    exit(1);
+  }
+
+  return &chunk->jumpTables.tables[number];
 }
 
 int disassembleInstruction(Chunk *chunk, int offset) {

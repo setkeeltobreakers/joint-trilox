@@ -106,29 +106,22 @@ static tokenType checkKeyword(int start, int length, char *rest, tokenType type)
   return TOKEN_IDENTIFIER;
 }
 
-static tokenType checkKeywordPlusOne(int start, int length, char *rest, tokenType maintype, char extrachar, tokenType othertype) {
-  if (memcmp(scanner.start + start, rest, length) == 0) {
-    if (scanner.current - scanner.start == start + length) {
-      return maintype;
-    } else if (scanner.current - scanner.start == start + length + 1	\
-	       && scanner.start[start + length] == extrachar) {
-      return othertype;
-    }
-  }
-  
-  return TOKEN_IDENTIFIER;
-}
-
 static tokenType identifierType() {
   if (scanner.current - scanner.start == 1) return TOKEN_IDENTIFIER;
   /* Return identifier token if token is only one letter. */
   
   switch (*scanner.start) {
   case 'p': return checkKeyword(1, 6, "rogram", TOKEN_PROGRAM);
-  case 'd': return checkKeyword(1, 1, "o", TOKEN_DO);
+  case 'd': {
+    switch (scanner.start[1]) {
+    case 'e': return checkKeyword(2, 5, "fault", TOKEN_DEFAULT);
+    case 'o': return checkKeyword(1, 1, "o", TOKEN_DO);
+    }
+  }
   case 'e': switch (scanner.start[1]) {
     case 'n': return checkKeyword(2, 1, "d", TOKEN_END_DECL);
     case 'a': return checkKeyword(2, 2, "ch", TOKEN_EACH);
+    case 'l': return checkKeyword(2, 2, "se", TOKEN_ELSE);
     } break;
   case 'f': {
     switch (scanner.start[1]) {
@@ -144,7 +137,12 @@ static tokenType identifierType() {
     } break;
   }
   case 'v': return checkKeyword(1, 2, "ar", TOKEN_VAR);
-  case 's': return checkKeyword(1, 4, "tate", TOKEN_STATE_DECL);
+  case 's': {
+    switch (scanner.start[1]) {
+    case 't': return checkKeyword(2, 3, "ate", TOKEN_STATE_DECL);
+    case 'w': return checkKeyword(2, 4, "itch", TOKEN_SWITCH);
+    }
+  }
   case 'n': {
     switch (scanner.start[1]) {
     case 'o': return checkKeyword(2,1, "t", TOKEN_NOT);
@@ -153,13 +151,28 @@ static tokenType identifierType() {
   }
   case 'x': return checkKeyword(1, 2, "or", TOKEN_XOR);
   case 'o': return checkKeyword(1, 1, "r", TOKEN_OR);
-  case 'c': if (scanner.start[1] == 'o') {
+  case 'c': {
+    switch(scanner.start[1]) {
+    case 'a': return checkKeyword(2, 2, "se", TOKEN_CASE);
+    case 'o': {
       switch (scanner.start[2]) {
       case 'm': return checkKeyword(3, 4, "pare", TOKEN_COMPARE);
-      case 'n': return checkKeyword(3, 5, "tinue", TOKEN_CONTINUE);
+      case 'n': {
+	switch (scanner.start[3]) {
+	case 't': return checkKeyword(4, 4, "inue", TOKEN_CONTINUE);
+	case 's': return checkKeyword(4, 4, "ider", TOKEN_CONSIDER);
+	}
       }
-    } break;
-  case 'w': return checkKeyword(1, 4, "hile", TOKEN_WHILE);
+      }
+    }
+    }
+  } break;
+  case 'w': if (scanner.start[1] == 'h') {
+      switch (scanner.start[2]) {
+      case 'i': return checkKeyword(3, 2, "le", TOKEN_WHILE);
+      case 'e': return checkKeyword(2, 2, "en", TOKEN_WHEN);
+      }
+    }
   case 'i': {
     switch (scanner.start[1]) {
     case 'n': return checkKeyword(1, 1, "n", TOKEN_IN);
