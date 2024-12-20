@@ -93,6 +93,23 @@ int tableGet(Table *table, ObjString *key, Value *value) {
   return 1;
 }
 
+int tableGetN(Table *table, int number, Value *value, Value *key) {
+  if (table->count == 0) return 0;
+  Entry *entry;
+  int j = 0;
+  for (int i = 0; i < number; i++) {
+    while (table->entries[j].key == NULL && j < table->capacity) {
+      j++;
+    }
+    entry = &table->entries[j];
+    j++;
+  }
+
+  *value = entry->value;
+  *key = OBJECT_VAL(entry->key);
+  return 1;
+}
+
 void tableAddAll(Table *from, Table *to, VM *vm) {
   for (int i = 0; i < from->capacity; i++) {
     Entry *entry = &from->entries[i];

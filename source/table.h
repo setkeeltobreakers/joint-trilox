@@ -22,6 +22,7 @@ void initTable(Table *table);
 void freeTable(Table *table, VM *vm);
 int tableSet(Table *table, ObjString *key, Value value, VM *vm);
 int tableGet(Table *table, ObjString *key, Value *value);
+int tableGetN(Table *table, int number, Value *value, Value *key);
 int tableDelete(Table *table, ObjString *key);
 ObjString *tableFindString(Table *table, char *chars, int length, uint32_t hash);
 void tableAddAll(Table *from, Table *to, VM *vm);

@@ -13,8 +13,6 @@
 #include "logic.h"
 #include "library.h"
 
-//VM vm;
-
 VMStack *getStack(VM *vm) {
   return vm->main_stack;
 }
@@ -461,21 +459,56 @@ static InterpretResult run(VM *vm) {
 	runtimeError("Expected number for array access.", vm);
 	return INTERPRET_RUNTIME_ERROR;
       }
-      if (!IS_ARRAY(peek(1,vmstack))) {
-	runtimeError("Trying to do an array access on something that isn't an array!", vm);
+
+      Value result;
+      
+      if (IS_ARRAY(peek(1,vmstack))) {
+	result = getFromArrayObject(AS_ARRAY(peek(1, vmstack)), peek(0, vmstack));
+      } else if (IS_TABLE(peek(1,vmstack))) {
+	Value key;
+	tableObjectGetN(AS_TABLE(peek(1, vmstack)), peek(0, vmstack), &result, &key);
+      } else {
+	runtimeError("Trying to do an each loop on something that isn't an array or a table!", vm);
 	return INTERPRET_RUNTIME_ERROR;
       } /* Check for these errors seperately to make the error messages more clear to the user. */
-      Value result = getFromArrayObject(AS_ARRAY(peek(1, vmstack)), peek(0, vmstack));
+      
       pop(vmstack);
       push(vmstack, result);
     } break;
+    case OP_GET_TABLE_LOOP: { /* Like the previous instruction, but it puts both the value
+				 and key on the stack. Also expects only tables*/
+      if (!IS_NUMBER(peek(0, vmstack))) {
+	runtimeError("Expected number for array access.", vm);
+	return INTERPRET_RUNTIME_ERROR;
+      }
+
+      Value result;
+      Value key;
+
+      if (IS_TABLE(peek(1,vmstack))) {
+	tableObjectGetN(AS_TABLE(peek(1, vmstack)), peek(0, vmstack), &result, &key);
+      } else {
+	runtimeError("Trying to do a table each loop on something that isn't a table!", vm);
+	return INTERPRET_RUNTIME_ERROR;
+      }
+
+      pop(vmstack);
+      push(vmstack, result);
+      push(vmstack, key);
+    } break;
     case OP_GET_ARRAY_COUNT: {
-      if (!IS_ARRAY(peek(0, vmstack))) {
+
+      Value count;
+      
+      if (IS_ARRAY(peek(0, vmstack))) {
+	count = NUMBER_VAL(AS_ARRAY(peek(0, vmstack))->values.count);
+      } else if (IS_TABLE(peek(0, vmstack))) {
+	count = NUMBER_VAL(AS_TABLE(peek(0, vmstack))->table.count);
+      } else {
 	runtimeError("Trying to get the count of something that isn't an array!", vm);
 	printValue(peek(0, vmstack));
 	return INTERPRET_RUNTIME_ERROR;
       }
-      Value count = NUMBER_VAL(AS_ARRAY(peek(0, vmstack))->values.count);
       push(vmstack, count);
     } break;
     case OP_TABLE_CLC_SET: {

@@ -86,6 +86,16 @@ void setInTableObject(ObjTable *table, ObjString *key, Value value, VM *vm) {
   tableSet(&table->table, key, value, vm);
 }
 
+int tableObjectGetN(ObjTable *table, Value number, Value *value, Value *key) {
+  double num_number = AS_NUMBER(number);
+  int int_num = round(num_number);
+  if (tableGetN(&table->table, int_num, value, key)) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 ObjFunction *newFunction(VM *vm) {
   ObjFunction *function = ALLOCATE_OBJECT(ObjFunction, OBJ_FUNCTION, vm);
   function->arity = 0;

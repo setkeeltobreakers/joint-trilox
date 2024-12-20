@@ -193,11 +193,17 @@ while true or unknown do 5 + 5, 6 + 6
       Each-in statments are, unlike out previous two examples, pretty much identical to what you would find in other languages with a 'for in' or 'each in' loop.
       Each-in statements define an array, a local variable representing an element in that array, and a statement which will be executed for every element in the
       array. Each-in loops also have a 'hidden' internal counter variable, named 'counter' that is exposed to the user and can be used if an explicit counter is 
-      necessary. 
+      necessary.
+      If the array supplied is actually a table, then the loop will loop through all of the values in the table, disregarding the keys. However, there is special 
+      syntax that can be used to loop through both the keys and the values. In either case, the loop will go through the table entries in the order they appear in
+      memory, which is generally never the order they are placed in by the user.
 
 ****** Syntax
 #+BEGIN_EXAMPLE
 each i in [5 4 6 3] do i + counter
+
+each val in :[ one : 1, two : 2, three : 3 ] do val + 1
+each key : val in :[ one : 1, two : 2, three : 3 ] do val + 1
 #+END_EXAMPLE
 
 ***** Blocks
@@ -262,10 +268,10 @@ switch "switcher" do
     default do 3 * 5
 #+END_EXAMPLE
 
-*** TODO Declarations
+*** Declarations
     Declarations extend the state of a program by defining new variables or functions.
 
-**** DONE Variables
+**** Variables
      As previously mentioned, variables in Trilox are dynamically typed. Variables are also lexically scoped, and global variables are late-bound.
      All of this means that any value can be slotted into any variable, variable scoping functions as normal in most languages, and global variables 
      can be referenced (but not accessed) before they are defined. Trilox does not support implicit definition, variables must be explicitly declared
@@ -278,9 +284,9 @@ var variable = 5
 var nilvariable
 #+END_EXAMPLE
 
-**** DONE Functions
+**** Functions
      Functions come in a couple of different forms in Trilox.
-
+     
 ***** Named Functions
       The primary form of function you'll find in Trilox is the named function. Named functions bind a series of declarations and statements to a name
       that can then be called to execute the function. Functions can take several arguments, but at present Joint does not support functions with a
@@ -310,17 +316,36 @@ var anonFunc = atom(a, b) (a + b)
 var anonout = anonFunc(3, 4)
 #+END_EXAMPLE
 
-**** TODO Tables
+**** Tables
      Similarly to functions, tables come in both named and anonymous forms.
 
 ***** Named Tables
-      
+      Tables are a way to bind values to string keys inside a data structure. Table entries can be accessed in one of two ways, a 'fixed' method which
+      uses a dot and identifier, and a 'calculated' method which uses a string value. The 'fixed' method is slightly faster, but the 'calculated' method
+      allows a table to be accessed by the contents of a variable or the output of a function.
+
+****** Syntax
+#+BEGIN_EXAMPLE
+table newTable
+    one : "One"
+    two : "Two"
+    three : "Three"
+end
+
+newTable.one
+newTable:["two"]
+#+END_EXAMPLE
+
 ***** Anonymous Tables
-      You've already seen an anonymous table declaration, way back in the 'Value' section.
+      You've already seen an anonymous table declaration, way back in the 'Value' section. Anonymous tables are identical in function to named tables, with
+      one small exception that we'll talk about in a later section.
 
 ****** Syntax
 #+BEGIN_EXAMPLE
 var anonTable = :[ one : "One", two : "Two", three : "Three"]
+
+anonTable.one
+anonTable:["two"]
 #+END_EXAMPLE
 
 *** TODO Libraries

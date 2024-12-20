@@ -121,6 +121,7 @@ void setInArrayObject(ObjArray *array, Value index, Value value, VM *vm);
 Value getFromArrayObject(ObjArray *array, Value index);
 void setInTableObject(ObjTable *table, ObjString *key, Value value, VM *vm);
 Value getFromTableObject(ObjTable *table, ObjString *key);
+int tableObjectGetN(ObjTable *table, Value number, Value *value, Value *key);
 ObjString *takeString(char *chars, int length, VM *vm);
 ObjString *copyString(char *chars, int length, VM *vm);
 void printObject(Value object);

@@ -826,10 +826,20 @@ static void eachStatement() {
   
   emitByte(OP_PUSH_1);
   emitByte(OP_PUSH_1);
-  
-  consume(TOKEN_IN, "Expect 'in' after loop variable.");
 
-  expression(); /* Must be an array. */
+  uint8_t loopKey = 0;
+
+  if (match(TOKEN_COLON)) {
+    consume(TOKEN_IDENTIFIER, "Expect key variable after ':' in each in statement.");
+    addLocal(parser.previous);
+    markInitialized();
+    loopKey = resolveLocal(current, &parser.previous);
+
+    emitByte(OP_PUSH_1);
+  }
+  consume(TOKEN_IN, "Expect 'in' after loop variable.");
+  
+  expression(); /* Must be an array or a table. */
   
   consume(TOKEN_DO, "Expect 'do' after loop variable");
 
@@ -842,15 +852,22 @@ static void eachStatement() {
   emitBytePair(OP_GET_LOCAL, loopCounter);
   emitByte(OP_KP_GT_EQUAL); /* Compare the loop counter to the array count. */
   
-  int exitJump = emitJump(OP_JUMP_IF_FALSE); /* Set up the exit jump. */
+  int exitJump = emitJump(OP_JUMP_IF_NOT_TRUE); /* Set up the exit jump. */
 
   emitByte(OP_POP); /* Remove the comparison result from the stack. */
   
   emitBytePair(OP_GET_LOCAL, loopCounter);
-  emitByte(OP_GET_ARRAY_LOOP);
-  emitBytePair(OP_SET_LOCAL, loopVar); /* Get the value from the array and put it in the loop variable. */
-  emitByte(OP_POP);
-
+  if (loopKey != 0) {
+    emitByte(OP_GET_TABLE_LOOP);
+    emitBytePair(OP_SET_LOCAL, loopVar); 
+    emitByte(OP_POP);
+    emitBytePair(OP_SET_LOCAL, loopKey);
+    emitByte(OP_POP);
+  } else {
+    emitByte(OP_GET_ARRAY_LOOP);
+    emitBytePair(OP_SET_LOCAL, loopVar); /* Get the value from the array and put it in the loop variable. */
+    emitByte(OP_POP);
+  }
   statement();
 
   emitByte(OP_PUSH_1);
