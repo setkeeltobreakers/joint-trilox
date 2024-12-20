@@ -195,6 +195,7 @@ static void initCompiler(Compiler *compiler, FunctionType type) {
   compiler->localCount = 0;
   compiler->scopeDepth = 0;
   compiler->loopLevel = 0;
+  compiler->breakNumber = 0;
   compiler->function = newFunction(vm);
   current = compiler;
 
@@ -754,6 +755,17 @@ static void closeBreaks() {
 
 static void breakStatement() {
   checkEndStatement();
+
+  int count = current->localCount;
+  while (count > 0 && current->locals[count - 1].depth > current->loopDepths[current->loopLevel - 1]) {
+    if (current->locals[count - 1].isCaptured) { /* Discards of any locals that may have been created inside the loop. */
+      emitByte(OP_CLOSE_UPVALUE);
+    } else {
+      emitByte(OP_POP);
+    }
+    count--;
+  }
+  
   int breakJump = emitJump(OP_JUMP);
   current->breaks[current->breakNumber] = (breakPoint) {breakJump, current->loopLevel};
   current->breakNumber++;
@@ -853,9 +865,9 @@ static void eachStatement() {
   emitByte(OP_POP);
   emitByte(OP_POP); /* Need two pops to get the array off the stack. */
   
-  endScope();
   current->loopLevel--;
   closeBreaks();
+  endScope();
 }
 
 static void continueStatement() {
