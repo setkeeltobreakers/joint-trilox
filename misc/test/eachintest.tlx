@@ -1,0 +1,6 @@
+var array = [ 1, 2, 3, 4, 5, 6, 7 ]
+var tableau = :[ one : "One", two : "Two", three : "Three", four : "Four", five : "Five", six : "Six", seven : "Seven" ]
+
+each i in array do disp(i)
+
+each i : j in tableau do disp(i, j)
