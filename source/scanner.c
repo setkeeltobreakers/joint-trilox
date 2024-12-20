@@ -179,8 +179,13 @@ static tokenType identifierType() {
     case 'f': return checkKeyword(1, 1, "f", TOKEN_IF);
     } break;
   }
-  case 'b': return checkKeyword(1, 4, "lock", TOKEN_BLK_DECL);
-  case 't': return checkKeyword(1, 3, "rue", TOKEN_TRUE);
+  case 't': {
+    switch (scanner.start[1]) {
+    case 'r': return checkKeyword(2, 2, "ue", TOKEN_TRUE);
+    case 'a': return checkKeyword(2, 3, "ble", TOKEN_TABLE_DECL);
+    }
+  }
+  case 'b': return checkKeyword(1, 4, "reak", TOKEN_BREAK);
   case 'u': return checkKeyword(1, 6, "nknown", TOKEN_UNKNOWN);
   }
 
@@ -215,12 +220,6 @@ static Token identifier() {
   return makeToken(identifierType());
 }
 
-static Token block_name() { /* Handle this seperately from other identifiers, bc reasons */
-  while (isAlpha(peek()) || isDigit(peek())) advance();
-
-  return makeToken(TOKEN_BLK_NAME);
-}
-
 Token scanToken() {
   skipWhitespace();
   scanner.start = scanner.current;
@@ -241,7 +240,7 @@ Token scanToken() {
   case '[': return makeToken(TOKEN_LEFT_SQUARE);
   case ']': return makeToken(TOKEN_RIGHT_SQUARE);
   case ',': return makeToken(TOKEN_COMMA);
-  case '.': if (isAlpha(peek())) {return block_name();} else {return makeToken(TOKEN_DOT);}; /* Perhaps just remove this and leave block names as identifiers. */
+  case '.': return makeToken(TOKEN_DOT);
   case ';': return makeToken(TOKEN_SEMICOLON);
   case ':': return makeToken(match('[') ? TOKEN_TABLE_OPEN : TOKEN_COLON);
   case '+': return makeToken(TOKEN_PLUS);

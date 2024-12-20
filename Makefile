@@ -3,6 +3,13 @@ CFLAGS=-O2
 all: libraries
 	make clean
 
+debug: libraries
+	make clean
+
+debug: CFLAGS:=-pg -g
+
+
+
 libraries: source/corelib.c joint
 	cc $(CFLAGS) -shared -o lib/native/corelib.binlib source/corelib.c *.o -fPIC;
 

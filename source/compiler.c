@@ -27,9 +27,9 @@ typedef enum {
   PREC_AND,         
   PREC_EQUALITY,    
   PREC_COMPARISON,
-  PREC_MODULO,
   PREC_ADDSUB,        
   PREC_MULTDIV,
+  PREC_MODULO,
   PREC_EXPONENTIAL,
   PREC_UNARY,       
   PREC_CALL,        
@@ -60,6 +60,11 @@ typedef enum {
   TYPE_SCRIPT
 } FunctionType;
 
+typedef struct {
+  int breakLocation;
+  int loopLevel;
+} breakPoint;
+
 typedef struct Compiler Compiler;
 
 struct Compiler {
@@ -74,6 +79,8 @@ struct Compiler {
   int loopLevel;
   int loopStarts[MAX_LOOP_NESTING];
   int loopDepths[MAX_LOOP_NESTING];
+  int breakNumber;
+  breakPoint breaks[MAX_LOOP_NESTING];
 };
 
 static void unary(int canAssign);
@@ -132,15 +139,23 @@ ParseRule rules[] = {
   [TOKEN_WHILE] = {NULL, NULL, PREC_NONE},
   [TOKEN_FOR] = {NULL, NULL, PREC_NONE},
   [TOKEN_IN] = {NULL, NULL, PREC_NONE},
+  [TOKEN_DO] = {NULL, NULL, PREC_NONE},
+  [TOKEN_EACH] = {NULL, NULL, PREC_NONE},
+  [TOKEN_CONTINUE] = {NULL, NULL, PREC_NONE},
+  [TOKEN_SWITCH] = {NULL, NULL, PREC_NONE},
+  [TOKEN_CASE] = {NULL, NULL, PREC_NONE},
+  [TOKEN_CONSIDER] = {NULL, NULL, PREC_NONE},
+  [TOKEN_WHEN] = {NULL, NULL, PREC_NONE},
+  [TOKEN_DEFAULT] = {NULL, NULL, PREC_NONE},
+  [TOKEN_ELSE] = {NULL, NULL, PREC_NONE},
   [TOKEN_PROGRAM] = {NULL, NULL, PREC_NONE},
   [TOKEN_END_DECL] = {NULL, NULL, PREC_NONE},
   [TOKEN_FUNCTION] = {NULL, NULL, PREC_NONE},
   [TOKEN_ATOM] = {atom, NULL, PREC_PRIMARY},
-  [TOKEN_BLK_NAME] = {NULL, NULL, PREC_NONE},
-  [TOKEN_BLK_DECL] = {NULL, NULL, PREC_NONE},
   [TOKEN_VAR] = {NULL, NULL, PREC_NONE},
   [TOKEN_ASSIGN] = {NULL, NULL, PREC_NONE},
   [TOKEN_STATE_DECL] = {NULL, NULL, PREC_NONE},
+  [TOKEN_TABLE_DECL] = {NULL, NULL, PREC_NONE},
   [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
   [TOKEN_STRING] = {string, NULL, PREC_NONE},
   [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
@@ -458,7 +473,6 @@ static void synchronize() {
     case TOKEN_END_DECL:
     case TOKEN_FUNCTION:
     case TOKEN_ATOM:
-    case TOKEN_BLK_DECL:
     case TOKEN_VAR:
     case TOKEN_STATE_DECL:
     case TOKEN_IF:
@@ -731,6 +745,20 @@ static void ifStatement() {
   }
 }
 
+static void closeBreaks() {
+  while (current->breakNumber > 0 && current->breaks[current->breakNumber - 1].loopLevel > current->loopLevel) {
+    patchJump(current->breaks[current->breakNumber - 1].breakLocation);
+    current->breakNumber--;
+  }
+}
+
+static void breakStatement() {
+  checkEndStatement();
+  int breakJump = emitJump(OP_JUMP);
+  current->breaks[current->breakNumber] = (breakPoint) {breakJump, current->loopLevel};
+  current->breakNumber++;
+}
+
 static void whileStatement() {
   current->loopLevel++;
   if (current->loopLevel > MAX_LOOP_NESTING) errorAtCurrent("Too many nested loops. What are you, a bird?");
@@ -756,6 +784,7 @@ static void whileStatement() {
   patchJump(exitJump);
   emitByte(OP_POP);
   current->loopLevel--;
+  closeBreaks();
 }
 
 static void eachStatement() {
@@ -826,12 +855,10 @@ static void eachStatement() {
   
   endScope();
   current->loopLevel--;
+  closeBreaks();
 }
 
-static void continueStatement() { /* TODO: Change things so locals inside a scope that is 
-				     entirely internal to the loop body (not the loop scope 
-				     itself) get discarded properly when this statement is 
-				     called. */
+static void continueStatement() {
   if (current->loopLevel < 1) {
     errorAtCurrent("Tried to use 'continue' outside of a loop.");
     return;
@@ -855,7 +882,7 @@ static void continueStatement() { /* TODO: Change things so locals inside a scop
 
   int count = current->localCount;
   while (count > 0 && current->locals[count - 1].depth > current->loopDepths[current->loopLevel - 1]) {
-    if (current->locals[count - 1].isCaptured) {
+    if (current->locals[count - 1].isCaptured) { /* Discards of any locals that may have been created inside the loop. */
       emitByte(OP_CLOSE_UPVALUE);
     } else {
       emitByte(OP_POP);
@@ -870,7 +897,7 @@ static void continueStatement() { /* TODO: Change things so locals inside a scop
 }
 
 static void considerStatement() {
-  int whenEndingJumps[256];
+  int whenEndingJumps[256]; /* This creates an artificial limitation on the number of when conditions. Maybe worth improving? Maybe not. */
   int jumps = 0;
   
   while (match(TOKEN_WHEN)) {
@@ -883,6 +910,10 @@ static void considerStatement() {
     patchJump(falseJump);
     emitByte(OP_POP);
     jumps++;
+    if (jumps >= 256) {
+      errorAtCurrent("Too many when conditions inside consider statement!");
+      break;
+    }
   }
 
   if (match(TOKEN_ELSE)) {
@@ -923,6 +954,10 @@ static void switchStatement() {
     statement();
     caseEndingJumps[jumps] = emitJump(OP_JUMP);
     jumps++;
+    if (jumps >= 256) {
+      errorAtCurrent("Too many cases inside switch statement!"); /* This limit is artificial, but I think 256 is enough for most purposes. */
+      break;
+    }
   }
   if (jumps == 0) errorAtCurrent("No 'case'-es inside switch statement!");
 
@@ -960,6 +995,8 @@ static void statement() {
     considerStatement();
   } else if (match(TOKEN_SWITCH)) {
     switchStatement();
+  } else if (match(TOKEN_BREAK)) {
+    breakStatement();
   } else {
     expressionStatement();
   }
@@ -979,11 +1016,59 @@ static void varDeclaration() {
   defineVariable(global);
 }
 
+static void table(tokenType endingType) {
+    while (!check(endingType) && !check(TOKEN_EOF)) {
+    consume(TOKEN_IDENTIFIER, "Expect identifier before ':' in table declaration.");
+    uint16_t identifier = identifierConstant(&parser.previous);
+    consume(TOKEN_COLON, "Expect ':' after identifier in table declaration.");
+    expression();
+    if (!check(endingType)) {
+      consume(TOKEN_COMMA, "Expect ',' between entries in table declaration");
+    }
+    /* Stack looks like this rn: <table>, <expression return value> */
+    if (identifier > UINT8_MAX) {
+      emitByteLong(OP_TABLE_SET_16, identifier);
+    } else { 
+      emitBytePair(OP_TABLE_SET, (uint8_t) identifier);
+    }
+    /* Both of these instructions must remove the return value from the stack,
+       but leave the table on the stack. */
+  }
+
+}
+
+static void tableDeclaration() {
+  uint16_t global = parseVariable("Expect table name.");
+
+  ObjTable *tableau = newTableObject(vm);
+  beginScope();
+  emitConstant(OBJECT_VAL(tableau));
+
+  Token selfToken = (Token) {TOKEN_IDENTIFIER, "self", 4, 0};
+  
+  addLocal(selfToken);
+  markInitialized();
+  uint8_t selfNum = resolveLocal(current, &selfToken);
+
+  table(TOKEN_END_DECL);
+
+  consume(TOKEN_END_DECL, "Expected 'end' at end of table declaration.");
+
+  endScope();
+  emitConstant(OBJECT_VAL(tableau));
+
+  defineVariable(global);
+
+  checkEndStatement();
+}
+
 static void declaration() {
   if (match(TOKEN_FUNCTION)) {
     functionDeclaration();
   } else if (match(TOKEN_VAR)) {
     varDeclaration();
+  } else if (match(TOKEN_TABLE_DECL)) {
+    tableDeclaration();
   } else {
     statement();
   }
@@ -1010,26 +1095,11 @@ static void array(int canAssign) {
 }
 
 static void hashTable(int canAssign) {
-  ObjTable *table = newTableObject(vm);
-  emitConstant(OBJECT_VAL(table));
-  while (!check(TOKEN_RIGHT_SQUARE) && !check(TOKEN_EOF)) {
-    consume(TOKEN_IDENTIFIER, "Expect identifier before ':' in table declaration.");
-    uint16_t identifier = identifierConstant(&parser.previous);
-    consume(TOKEN_COLON, "Expect ':' after identifier in table declaration.");
-    expression();
-    if (!check(TOKEN_RIGHT_SQUARE)) {
-      consume(TOKEN_COMMA, "Expect ',' between entries in table declaration");
-    }
-    /* Stack looks like this rn: <table>, <expression return value> */
-    if (identifier > UINT8_MAX) {
-      emitByteLong(OP_TABLE_SET_16, identifier);
-    } else { 
-      emitBytePair(OP_TABLE_SET, (uint8_t) identifier);
-    }
-    /* Both of these instructions must remove the return value from the stack,
-       but leave the table on the stack. */
-  }
+  ObjTable *tableau = newTableObject(vm);
+  emitConstant(OBJECT_VAL(tableau));
 
+  table(TOKEN_RIGHT_SQUARE);
+  
   consume(TOKEN_RIGHT_SQUARE, "Expected ']' after table declaration.");
 }
 

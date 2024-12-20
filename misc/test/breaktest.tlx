@@ -1,0 +1,9 @@
+var i = 0;
+while i < 10 do {
+      i = i + 1
+      disp(i)
+      if i == 5 do {
+      	 disp("Break works!")
+	 break
+      }
+}

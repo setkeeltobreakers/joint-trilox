@@ -300,7 +300,9 @@ var anonFunc = atom(a, b) (a + b)
      Similarly to functions, tables come in both named and anonymous forms.
 
 ***** Named Tables
+      
 ***** Anonymous Tables
+      You've already seen an anonymous table declaration, way back in the 'Value' section.
 *** TODO Libraries
     Filler
 **** TODO Native Libraries

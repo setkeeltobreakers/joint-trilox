@@ -1,0 +1,15 @@
+table ThisTable
+      one : "One",
+      two : "Two",
+      three : "Three",
+      four : "Four",
+      five : atom() (self),
+      six : "Six"
+end
+
+disp(ThisTable:["one"])
+disp(ThisTable:["two"])
+disp(ThisTable:["three"])
+disp(ThisTable:["four"])
+disp(ThisTable:["five"]())
+disp(ThisTable:["six"])
