@@ -7,6 +7,7 @@
 #include "chunk.h"
 #include "memory.h"
 #include "vm.h"
+#include "table.h"
 
 uint8_t getFromChunk(Chunk *chunk, int slot) {
   if (slot >= chunk->count) {
@@ -139,6 +140,8 @@ int disassembleInstruction(Chunk *chunk, int offset) {
   case OP_COLLECT: return byteInstruction("OP_COLLECT", chunk, offset);
   case OP_TABLE_SET: return constantInstruction("OP_TABLE_SET", chunk, offset);
   case OP_TABLE_SET_16: return longConstantInstruction("OP_TABLE_SET_16", chunk, offset);
+  case OP_TABLE_GET: return constantInstruction("OP_TABLE_GET", chunk, offset);
+  case OP_TABLE_GET_16: return longConstantInstruction("OP_TABLE_GET_16", chunk, offset);
   case OP_SET_GLOBAL: return constantInstruction("OP_SET_GLOBAL", chunk, offset);
   case OP_SET_GLOBAL_16: return longConstantInstruction("OP_SET_GLOBAL_16", chunk, offset);
   case OP_SET_LOCAL: return byteInstruction("OP_SET_LOCAL", chunk, offset);
@@ -178,6 +181,13 @@ int disassembleInstruction(Chunk *chunk, int offset) {
   case OP_JUMP_IF_UNKNOWN: return jumpInstruction("OP_JUMP_IF_UNKNOWN", 1, chunk, offset);
   case OP_JUMP_IF_TRUE: return jumpInstruction("OP_JUMP_IF_TRUE", 1, chunk, offset);
   case OP_JUMP_IF_NOT_TRUE: return jumpInstruction("OP_JUMP_IF_NOT_TRUE", 1, chunk, offset);
+  case OP_JUMP_TABLE_JUMP: {
+    offset++;
+    uint8_t tableNum = chunk->code[offset++];
+    printf("%-16s %4d ", "OP_JUMP_TABLE_JUMP", tableNum);
+    printTable(&chunk->jumpTables.tables[tableNum]);
+    printf("\n");    
+  }
   case OP_LOOP: return jumpInstruction("OP_LOOP", -1, chunk, offset);
   case OP_CALL: return byteInstruction("OP_CALL", chunk, offset);
   case OP_CLOSURE: {

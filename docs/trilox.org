@@ -215,14 +215,16 @@ if true do 5^3, 2/2, 25 - 3
 }
 #+END_EXAMPLE
 
-***** Continue
+***** Continue and Break
       The continue statement can be used to skip to jump back to the top of a while loop, or in the case of an each in loop, jump to the next iteration.
       If used inside the unknown statement in a while loop, it will return into the loop for another execution.
+      The break statement can be used to immediately exit from a loop, any loop.
 
 ****** Syntax
 #+BEGIN_EXAMPLE
 while true do {
     5 + 5
+    if false do break
 }, { 
     disp("Something went wrong!") 
     continue
@@ -276,11 +278,15 @@ var variable = 5
 var nilvariable
 #+END_EXAMPLE
 
-**** TODO Functions
+**** DONE Functions
      Functions come in a couple of different forms in Trilox.
 
 ***** Named Functions
-      The primary form of function you'll find in Trilox is the named function. Named functions 
+      The primary form of function you'll find in Trilox is the named function. Named functions bind a series of declarations and statements to a name
+      that can then be called to execute the function. Functions can take several arguments, but at present Joint does not support functions with a
+      variable number of arguments, and they will return a single value. Unlike many programming languages, Trilox does not support a 'return' statment;
+      early exits from the program are not permitted, and the return value is specified with the same keyword that ends the function declaration. If
+      no return value is specified, the function will implicitly return 'nil'.
 
 ****** Syntax
 #+BEGIN_EXAMPLE
@@ -288,12 +294,20 @@ function exampleFun(arg1, arg2, arg3)
     var outvar
     outvar = arg1 + arg2 - arg3
 end(outvar)
+
+var out = exampleFun(1, 2, 3)
 #+END_EXAMPLE
 
 ***** Anonymous Functions
+      The second form of function you'll find in Trilox is the anonymous function. Anonymous functions turn a single expression into a function that
+      takes in arguments and returns the result of evaluating the expression inside its declaration. Anonymous functions can be bound to a name by
+      assigning them to a variable. 
+
 ****** Syntax
 #+BEGIN_EXAMPLE
 var anonFunc = atom(a, b) (a + b)
+
+var anonout = anonFunc(3, 4)
 #+END_EXAMPLE
 
 **** TODO Tables
@@ -303,6 +317,12 @@ var anonFunc = atom(a, b) (a + b)
       
 ***** Anonymous Tables
       You've already seen an anonymous table declaration, way back in the 'Value' section.
+
+****** Syntax
+#+BEGIN_EXAMPLE
+var anonTable = :[ one : "One", two : "Two", three : "Three"]
+#+END_EXAMPLE
+
 *** TODO Libraries
     Filler
 **** TODO Native Libraries

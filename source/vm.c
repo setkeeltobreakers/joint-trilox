@@ -301,6 +301,22 @@ static InterpretResult run(VM *vm) {
       setInTableObject(AS_TABLE(peek(1,vmstack)), READ_LONG_STRING(), peek(0, vmstack), vm);
       pop(vmstack);
     } break;
+    case OP_TABLE_GET: {
+      if (!IS_TABLE(peek(0, vmstack))) {
+	runtimeError("Trying to get an entry from a non-table. This is an implimentation error, get out your bug report!", vm);
+	return INTERPRET_RUNTIME_ERROR;
+      }
+      Value value = getFromTableObject(AS_TABLE(peek(0,vmstack)), READ_STRING());
+      pop(vmstack);
+      push(vmstack, value);
+    } break;
+    case OP_TABLE_GET_16: {
+      if (!IS_TABLE(peek(0, vmstack))) {
+	runtimeError("Trying to get an entry from a non-table. This is an implimentation error, get out your bug report!", vm);
+	return INTERPRET_RUNTIME_ERROR;
+      }
+      getFromTableObject(AS_TABLE(peek(0,vmstack)), READ_STRING());
+    } break;
     case OP_POP: pop(vmstack); break;
     case OP_FALSE: push(vmstack, LOGIC_VAL(TRILOX_FALSE)); break;
     case OP_UNKNOWN: push(vmstack, LOGIC_VAL(TRILOX_UNKNOWN)); break;

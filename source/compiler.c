@@ -97,6 +97,7 @@ static void array(int canAssign);
 static void accessArray(int canAssign);
 static void hashTable(int canAssign);
 static void tableCalculatedAccess(int canAssign);
+static void tableFixedAccess(int canAssign);
 
 static void declaration();
 static void statement();
@@ -112,7 +113,7 @@ ParseRule rules[] = {
   [TOKEN_RIGHT_SQUARE] = {NULL, NULL, PREC_NONE},
   [TOKEN_TABLE_OPEN] = {hashTable, tableCalculatedAccess, PREC_CALL},
   [TOKEN_COMMA] = {NULL, NULL, PREC_NONE},
-  [TOKEN_DOT] = {NULL, NULL, PREC_NONE},
+  [TOKEN_DOT] = {NULL, tableFixedAccess, PREC_CALL},
   [TOKEN_SEMICOLON] = {NULL, NULL, PREC_NONE},
   [TOKEN_COLON] = {NULL, NULL, PREC_NONE},
   [TOKEN_MINUS] = {unary, binary, PREC_ADDSUB},
@@ -1148,6 +1149,31 @@ static void tableCalculatedAccess(int canAssign) {
     checkEndStatement();
   } else {
     emitByte(OP_TABLE_CLC_GET);
+  }
+}
+
+static void tableFixedAccess(int canAssign) {
+  if (parser.prevNext.type == TOKEN_RIGHT_SQUARE) {
+    errorAtCurrent("Tried to access a table while declaring it.");
+  }
+
+  consume(TOKEN_IDENTIFIER, "Expected table key after '.'");
+  uint16_t name = identifierConstant(&parser.previous);
+  
+  if (canAssign && match(TOKEN_ASSIGN)) {
+    expression();
+    if (name > UINT8_MAX) {
+      emitByteLong(OP_TABLE_SET_16, name);
+    } else { 
+      emitBytePair(OP_TABLE_SET, (uint8_t) name);
+    }
+    checkEndStatement();
+  } else {
+    if (name > UINT8_MAX) {
+      emitByteLong(OP_TABLE_GET_16, name);
+    } else { 
+      emitBytePair(OP_TABLE_GET, (uint8_t) name);
+    }
   }
 }
 

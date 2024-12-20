@@ -17,6 +17,8 @@ typedef enum {
   OP_COLLECT,
   OP_TABLE_SET,
   OP_TABLE_SET_16,
+  OP_TABLE_GET,
+  OP_TABLE_GET_16,
   OP_POP,
   OP_FALSE,
   OP_UNKNOWN,

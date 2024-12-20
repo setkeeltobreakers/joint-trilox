@@ -3,13 +3,17 @@ table ThisTable
       two : "Two",
       three : "Three",
       four : "Four",
-      five : atom() (self),
+      five : atom() (printOneFromTable(self)),
       six : "Six"
 end
 
-disp(ThisTable:["one"])
-disp(ThisTable:["two"])
-disp(ThisTable:["three"])
-disp(ThisTable:["four"])
-disp(ThisTable:["five"]())
-disp(ThisTable:["six"])
+function printOneFromTable(tableau)
+	 disp(tableau.one)
+end("Print")
+
+disp(ThisTable.one) # ;v; me so happy
+disp(ThisTable.two)
+disp(ThisTable.three)
+disp(ThisTable.four); ThisTable.one = ":) waow"
+disp(ThisTable.five())
+disp(ThisTable.six)
