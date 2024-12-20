@@ -8,8 +8,6 @@ debug: libraries
 
 debug: CFLAGS:=-pg -g
 
-
-
 libraries: source/corelib.c joint
 	cc $(CFLAGS) -shared -o lib/native/corelib.binlib source/corelib.c *.o -fPIC;
 
