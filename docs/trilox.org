@@ -355,7 +355,31 @@ anonTable:["two"]
 **** TODO Core Library
 ** Advanced Topics
 *** Error Handling via Ternary Logic
-    Arguably the main unique feature of Trilox is its use of ternary logic
+    Arguably the main unique feature of Trilox is its use of ternary logic, but a programmer used to the more common binary logic might justifiably
+    wonder: "How to I make ternary logic useful in my programs?" 
+    The conventions for interpreting logical values are that true and false are for values that are within expected parameters but meet or fail to 
+    meet some condition, and unknown is for values that are beyond expected parameters. This is implemented within Trilox' native comparisons by 
+    checking if both inputs are of the same type, and returning true or false if they are, and unknown if they are of different types. Combining this
+    with Trilox' ternary if statement can give us functions that automatically perform input type checking and executes user-defined error handling 
+    code if the inputs are the wrong type. 
+    An example of a function for calculating fibonacci numbers that takes advantage of this automatic type checking is given below.
+    
+:Example:
+#+BEGIN_EXAMPLE
+function fibonacci(n)
+	 var fib = nil	 
+	 if n < 2 do fib = n, disp("Wrong input type! Needs to be a number!"), fib = fibonacci(n - 1) + fibonacci(n - 2)
+end(fib)
+
+disp(fibonacci(5))
+disp(fibonacci("5"))
+#+END_EXAMPLE
+Expected output: 5 
+                 Wrong input type! Needs to be a number!
+		 nil
+:END:
+
+    ASd
 
 *** Object Oriented Trilox
     Trilox is not a primarily object oriented language, but it does have some support for OOP through tables. Since functions are first class values,

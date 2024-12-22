@@ -1,0 +1,13 @@
+var array = [true, true, true, unknown, true, false]
+
+var i = 1
+var newarray = []
+while array[i] do {
+      newarray[i] = i
+      i = i + 1
+}, {
+      array[i] = true
+      continue
+}
+
+disp(newarray)
