@@ -116,6 +116,7 @@ static tokenType identifierType() {
     switch (scanner.start[1]) {
     case 'e': return checkKeyword(2, 5, "fault", TOKEN_DEFAULT);
     case 'o': return checkKeyword(1, 1, "o", TOKEN_DO);
+    case 'u': return checkKeyword(2, 7, "plicate", TOKEN_DUPLICATE);
     }
   }
   case 'e': switch (scanner.start[1]) {

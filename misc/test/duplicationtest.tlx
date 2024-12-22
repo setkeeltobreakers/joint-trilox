@@ -1,0 +1,9 @@
+table tableau
+      one : "One",
+      method : atom() (disp(self.one))
+end
+
+table tableauDeaux duplicate tableau
+
+tableauDeaux.one = "Two"
+tableauDeaux.method()

@@ -34,6 +34,7 @@ static void dumpFrames(VM *vm) {
 static void runtimeError(char *message, VM *vm) {
   printf("%s\n", message);
   dumpFrames(vm);
+  dumpStacks(vm);
 }
 
 void defineNative(char *name, libFn function, VM *vm) {
@@ -207,6 +208,43 @@ static void concatenate(VM *vm, VMStack *vmstack) {
   push(vmstack, OBJECT_VAL(result));
 }
 
+static Value duplicateTable(Value table, VM *vm) {
+  /* Assume off the bat that the input is actually a table. A dangerous assumption, but we'll make it work. */
+  ObjTable *table1 = AS_TABLE(table);
+  ObjTable *table2 = newTableObject(vm);
+
+  Value table2Val = OBJECT_VAL(table2);
+  ObjUpvalue *table2Upval = newUpvalue(&table2Val, vm);
+  table2Upval->closed = *table2Upval->location;
+  table2Upval->location = &table2Upval->closed;
+  
+  for (int i = 0; i < table1->table.capacity; i++) {
+    Entry *entry = &table1->table.entries[i];
+    if (entry->key != NULL) {
+      Value value;
+      if (IS_CLOSURE(entry->value)) {
+	ObjClosure *closureOld = AS_CLOSURE(entry->value);
+	ObjClosure *closureNew = newClosure(closureOld->function, vm);
+	for (int j = 0; j < closureOld->upvalueCount; j++) {
+	  ObjUpvalue *oldUpvalue = closureOld->upvalues[j];
+	  if (LOGIC_TO_BOOL(valuesEqual(table, *oldUpvalue->location))) {
+	    table2Upval->next = oldUpvalue->next;
+	    closureNew->upvalues[j] = table2Upval;
+	  } else {
+	    closureNew->upvalues[j] = closureOld->upvalues[j];
+	  }
+	}
+	value = OBJECT_VAL(closureNew);
+      } else {
+	value = entry->value;
+      }
+      setInTableObject(table2, entry->key, value, vm);
+    }
+  }
+
+  return table2Val;
+}
+
 static InterpretResult run(VM *vm) {
   CallFrame *frame = &vm->call_stack->frames[vm->call_stack->frameCount - 1];  
   VMStack *vmstack = getStack(vm);
@@ -314,6 +352,16 @@ static InterpretResult run(VM *vm) {
 	return INTERPRET_RUNTIME_ERROR;
       }
       getFromTableObject(AS_TABLE(peek(0,vmstack)), READ_STRING());
+    } break;
+    case OP_TABLE_DUPLICATE: {
+      if (!IS_TABLE(peek(0, vmstack))) {
+	runtimeError("Trying to duplicate a non-table!", vm);
+	return INTERPRET_RUNTIME_ERROR;
+      }
+
+      Value tableNew = duplicateTable(peek(0, vmstack), vm);
+      pop(vmstack);
+      push(vmstack, tableNew);
     } break;
     case OP_POP: pop(vmstack); break;
     case OP_FALSE: push(vmstack, LOGIC_VAL(TRILOX_FALSE)); break;

@@ -353,3 +353,49 @@ anonTable:["two"]
 **** TODO Native Libraries
 **** TODO Importing Scripts
 **** TODO Core Library
+** Advanced Topics
+*** Error Handling via Ternary Logic
+    Arguably the main unique feature of Trilox is its use of ternary logic
+
+*** Object Oriented Trilox
+    Trilox is not a primarily object oriented language, but it does have some support for OOP through tables. Since functions are first class values,
+    they can be placed in tables, but they wouldn't really count as methods unless there was a way to make them operate on the data inside the table.
+    Remember that small difference between named and anonymous table declarations we talked about a while ago? Well, this is where it comes into play.
+    Inside of a named table declaration, the keyword 'self' can be used to reference the table itself within the declaration. This can be used to create
+    anonymous functions which operate on the table. Named functions can then be defined which take in tables as arguments, and then anonymous functions
+    can be used to bind those functions to particular tables.
+    
+:Example:
+#+BEGIN_EXAMPLE
+function tableSetOne(tbl, value)
+    tbl.one = value
+end
+
+table tableau
+    one : "One",
+    method : atom(a) (tableSetOne(self, a))
+end
+
+tableau.method("Two")
+
+disp(tableau.one)
+#+END_EXAMPLE
+Expected output: "Two"
+:END:
+
+    Now, what about creating new objects from existing objects? If we simply created a new table value and then manually copied over the values from
+    an old object to the new table, not only would that be a lot of code and effort for what should really be basic OOP functionality, it would create
+    a broken object, as any methods in the new object would still reference the original object. This is where the 'duplicate' keyword comes in. Using
+    this keyword, possible to duplicate an existing table and update all of its methods to reference the new table.
+
+:Example:
+#+BEGIN_EXAMPLE
+table tableauDeaux duplicate tableau
+
+tableauDeaux.method("Three")
+disp(tableau.one, tableauDeaux.one)
+#+END_EXAMPLE
+Expected output: Two, Three
+:END:
+
+    And there we go, object oriented Trilox.

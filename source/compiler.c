@@ -1071,6 +1071,11 @@ static void tableDeclaration() {
   uint16_t global = parseVariable("Expect table name.");
 
   ObjTable *tableau = newTableObject(vm);
+  if (match(TOKEN_DUPLICATE)) {
+    consume(TOKEN_IDENTIFIER, "Expect table name after 'duplicate'.");
+    variable(0);
+    emitByte(OP_TABLE_DUPLICATE);
+  } else {
   beginScope();
   emitConstant(OBJECT_VAL(tableau));
 
@@ -1086,7 +1091,8 @@ static void tableDeclaration() {
 
   endScope();
   emitConstant(OBJECT_VAL(tableau));
-
+  }
+  
   defineVariable(global);
 
   checkEndStatement();

@@ -1,0 +1,16 @@
+function tableSetOne(tbl, value)
+	 tbl.one = value
+end
+
+table tableau
+      one : "One",
+      method : atom(a) (tableSetOne(self, a))
+end
+
+tableau.method("Two")
+disp(tableau.one)
+
+table tableauDeaux duplicate tableau
+
+tableauDeaux.method("Three")
+disp(tableau.one, tableauDeaux.one)

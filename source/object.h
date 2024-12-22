@@ -59,12 +59,6 @@ struct ObjTable {
   Table table;
 };
 
-typedef struct {
-  Object obj;
-  Entry *entry;
-} ObjEntry; /* This is an object type that is only intended for internal use. 
-	       In particular, with 'in each' loops that go through hash tables.*/
-
 struct ObjString {
   Object obj;
   int length;
