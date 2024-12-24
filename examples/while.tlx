@@ -6,6 +6,7 @@ while array[i] do {
       newarray[i] = i
       i = i + 1
 }, {
+      disp("Error at entry", i, "correcting")
       array[i] = true
       continue
 }

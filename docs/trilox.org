@@ -1,6 +1,6 @@
 This file serves to document the basics of the Trilox language, as implimented by the Joint interpreter
 
-* Core Features
+* Trilox
 ** Basics
 *** Values
     Trilox is a dynamically typed language with seven basics types of value:
@@ -356,7 +356,7 @@ anonTable:["two"]
 ** Advanced Topics
 *** Error Handling via Ternary Logic
     Arguably the main unique feature of Trilox is its use of ternary logic, but a programmer used to the more common binary logic might justifiably
-    wonder: "How to I make ternary logic useful in my programs?" 
+    wonder: "How do I make ternary logic useful in my programs?" First, we need to undertand what exactly each logical value means.
     The conventions for interpreting logical values are that true and false are for values that are within expected parameters but meet or fail to 
     meet some condition, and unknown is for values that are beyond expected parameters. This is implemented within Trilox' native comparisons by 
     checking if both inputs are of the same type, and returning true or false if they are, and unknown if they are of different types. Combining this
@@ -379,7 +379,36 @@ Expected output: 5
 		 nil
 :END:
 
-    ASd
+    One construct that takes advantage of the behavior of Trilox control flow is what we're going to call the 'error-correcting while loop.' 
+    An example of this construct is given below
+
+:Example:
+#+BEGIN_EXAMPLE
+var array = [true, true, true, unknown, true, false]
+
+var i = 1
+var newarray = []
+while array[i] do {
+      newarray[i] = i
+      i = i + 1
+}, {
+      disp("Error at entry", i, "correcting")
+      array[i] = true
+      continue
+}
+
+disp(newarray)
+#+END_EXAMPLE
+Expected output: Error at entry, 4, correcting
+                 [ 1, 2, 3, 4, 5 ]
+:END:
+
+    This example loops through an array and grows a second array until it finds an 'false' entry in the original array. If it finds an 'unknown' entry
+    in the original array, it reports the error to the user, corrects the entry to true, and returns to the loop with a continue statement.
+    Obviously, this is a toy example, but it illustrates the basic concept. The loop first queries the state of the program, if it gets back a 'true'
+    result, then it continues executing as normal, if it gets back a 'false' result, it exits the loop normally, and if it gets back an 'unknown' 
+    result, it executes special error-handling code and returns to the loop if the correction was successful, or exits the loop if the correction was
+    unsuccessful.
 
 *** Object Oriented Trilox
     Trilox is not a primarily object oriented language, but it does have some support for OOP through tables. Since functions are first class values,
